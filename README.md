@@ -1,6 +1,9 @@
 # tibber-mill-power
 
 # What's that for?
+Fetching information about the pricing of electricity in europe.
+With this information you can plan the mill heater socket device.
+With this information you can draw a graph and upload it
 
 ## Get pricing via Tibber api
 * inspired by https://github.com/ast0815/ha-tibber-price-graph
@@ -29,5 +32,9 @@
 see [LICENSE](LICENSE) file
 
 # References
-* https://github.com/ast0815/ha-tibber-price-graph
-* https://github.com/Mill-International-AS/Generation_3_REST_API/tree/release_0x220727_heaters (not in master currently)
+* [ha-tibber-price-graph](https://github.com/ast0815/ha-tibber-price-graph)
+* [Mill-API Feature Branch](https://github.com/Mill-International-AS/Generation_3_REST_API/tree/release_0x220727_heaters) (not in master currently)
+
+# Donation
+If you like these bunch of scripts and haven't registered to [Tibber](https://tibber.com/)
+you can use this [Tibber Bonus Programme](https://invite.tibber.com/o2g0anwr)
