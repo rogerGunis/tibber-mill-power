@@ -1,0 +1,20 @@
+name: pdf generation
+on: [push]
+jobs:
+  artifacts:
+  runs-on: ubuntu-latest
+  steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v2        
+      - name: Start the Project
+        run: ./run.sh
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: allCalendarInformations
+          path: |
+            /var/tmp/schedule/*.pdf
+            /var/tmp/schedule/*.ics
+            /var/tmp/schedule/*.html
+          if-no-files-found: error
+

@@ -1,0 +1,27 @@
+set terminal pngcairo enhanced truecolor size 1448,1072 fontscale 3.2
+set output 'tibber.png'
+set xdata time
+set timefmt '%H:%M:%S'
+set ylabel '€/kWh'
+set datafile separator ','
+set title "Hourly Electricity Prices"
+set key top center
+set linetype 1 dt 1 lw 3 linecolor rgb 'black'
+set linetype 2 dt 5 lw 3 linecolor rgb 'black'
+set key autotitle columnhead
+set key right bottom
+set title "".strftime("%a %b %d %H:%M:%S %Y", time(0)+3600)
+set xtics format ""
+set format x '%H'
+set xtics rotate by -45
+
+set xtics nomirror
+set x2data time
+set x2tics format ""
+set format x2 '%H'
+set x2tics rotate by 60
+set x2tics scale 0 nomirror offset 0,-2.5 rotate by 90
+
+load "nowline.gp"
+plot 'today.dat' using 1:2 title 'Today' with steps, \
+     'tomorrow.dat' using 1:2 title 'Tomorrow' with steps

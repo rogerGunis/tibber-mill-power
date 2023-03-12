@@ -3,4 +3,9 @@
 [._]*.sw[a-p]
 [._]s[a-v][a-z]
 [._]sw[a-p]
+.fritz.box
 .env
+.idea
+tibber-mill-power.iml
+tibber-mill-power.ipr
+tibber-mill-power.iws
