@@ -1,20 +1,26 @@
-name: pdf generation
-on: [push]
+on:
+  schedule:
+    - cron:  '30 14 * * *'
+  push:
+    branches: [ main ]
+
+name: tibber mill workflow
 jobs:
-  artifacts:
-  runs-on: ubuntu-latest
-  steps:
+  tibber-mill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y gnuplot jq imagemagick google-chrome-stable
       - name: Checkout Source Code
-        uses: actions/checkout@v2        
+        uses: actions/checkout@v3
       - name: Start the Project
         run: ./run.sh
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: allCalendarInformations
-          path: |
-            /var/tmp/schedule/*.pdf
-            /var/tmp/schedule/*.ics
-            /var/tmp/schedule/*.html
-          if-no-files-found: error
 
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: allTibberMillStuff
+          path: |
+            /tmp/exchange/*
+          if-no-files-found: error
+          retention-days: 2

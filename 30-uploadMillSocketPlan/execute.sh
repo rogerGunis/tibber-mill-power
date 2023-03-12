@@ -113,7 +113,7 @@ EOT
 }
 
 upload(){
-    STATUS=$(ping -q -c1 -w1 $(getHost)  2>&1 >/dev/null && curl -s -X POST -H 'accept: */*' -d@$(getTmp)/plan4mill.json http://$(getHost)/non-repeatable-timers | jq .status)
+    STATUS=$(ping -q -c1 -w1 $(getHost)  2>&1 >/dev/null && curl -s -X POST -H 'accept: */*' -d@$(getTmp)/plan4mill.json http://$(getHost)/non-repeatable-timers | jq .status || echo "failed")
     info "$(getHost) upload response: ${STATUS}"
 }
 

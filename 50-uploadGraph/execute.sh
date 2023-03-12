@@ -139,7 +139,8 @@ EOT
 }
 
 upload(){
-  ping -q -c1 -w1 $(getHost)  2>&1 >/dev/null && ncftpput -u "$(getUser)" -p "$(getPassword)" -C "$(getHost)" $(getTmp)/tibber.png tibber.png
+  STATUS=$(ping -q -c1 -w1 $(getHost)  2>&1 >/dev/null && ncftpput -u "$(getUser)" -p "$(getPassword)" -C "$(getHost)" $(getTmp)/tibber.png tibber.png && echo "ok" || echo "failed")
+  echo "host $(getHost) response: ${STATUS}"
 }
 
 main() {

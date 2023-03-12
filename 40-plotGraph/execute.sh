@@ -61,8 +61,12 @@ parseArguments() {
       setTmp "${i/*=/}"
       shift
       ;;
-    --percentile-price=*)
-      setPercentilePrice "${i/*=/}"
+    --percentile-price-today=*)
+      setPercentilePriceToday "${i/*=/}"
+      shift
+      ;;
+    --percentile-price-tomorrow=*)
+      setPercentilePriceTomorrow "${i/*=/}"
       shift
       ;;
     --percentile=*)
@@ -105,7 +109,8 @@ printUsageAndExit() {
     IFS="" read -r -d '' usageText <<EOT
 usage: ${SCRIPT_NAME} --tmp=.... temporary directory saving files
                       --percentile=[50|60|70|80...|100].....
-                      --percentile-price=..... set percentile price value - shown as dashed line
+                      --percentile-price-today=..... set percentile price value today - shown as dashed line -
+                      --percentile-price-tomorrow=..... set percentile price value tomorrow - shown as dashed line .
   example:
      ./${SCRIPT_NAME} --tmp=/tmp/exchange
 EOT
@@ -114,13 +119,22 @@ EOT
   exit 1
 }
 
-setPercentilePrice() {
-  PERCENTILE_PRICE="${1}"
+setPercentilePriceToday() {
+  PERCENTILE_PRICE_TODAY="${1}"
 }
 
-getPercentilePrice() {
-  echo "${PERCENTILE_PRICE:-}"
+getPercentilePriceToday() {
+  echo "${PERCENTILE_PRICE_TODAY:-}"
 }
+
+setPercentilePriceTomorrow() {
+  PERCENTILE_PRICE_TOMORROW="${1}"
+}
+
+getPercentilePriceTomorrow() {
+  echo "${PERCENTILE_PRICE_TOMORROW:-}"
+}
+
 
 setPercentile() {
   PERCENTILE="${1}"
@@ -148,13 +162,15 @@ setLines() {
   local NOW=$(date +%H:%M)
   echo "set arrow from '${NOW}', graph 0 to '${NOW}', graph 1 nohead lt 0" >"$(getTmp)/nowline.gp"
   echo "set title 'Data from: ${DAY_TITLE}'" >> "$(getTmp)/nowline.gp"
-  echo "set arrow from graph 0,first "$(getPercentilePrice)" to graph 1, first "$(getPercentilePrice)"nohead front lc rgb \"black\" lw 4  dashtype \"-\"" >>"$(getTmp)/nowline.gp"
-  echo "set label '"$(getPercentile)"%' at 0,"$(getPercentilePrice) >>"$(getTmp)/nowline.gp"
+  echo "set arrow from graph 0,first "$(getPercentilePriceToday)" to graph 1, first "$(getPercentilePriceToday)"nohead front lc rgb \"black\" lw 4  dashtype \"-\"" >>"$(getTmp)/nowline.gp"
+  echo "set arrow from graph 0,first "$(getPercentilePriceTomorrow)" to graph 1, first "$(getPercentilePriceTomorrow)"nohead front lc rgb \"black\" lw 4  dashtype \".\"" >>"$(getTmp)/nowline.gp"
+
+  echo "set label '"$(getPercentile)"%' at 0,"$(getPercentilePriceToday) >>"$(getTmp)/nowline.gp"
 }
 
 makeGraph() {
   pushd $(getTmp)
-  gnuplot plot && google-chrome tibber.png &
+  gnuplot plot && google-chrome $(getTmp)/tibber.png &
   popd
 }
 
@@ -169,7 +185,7 @@ main() {
     printUsageAndExit
     exit 1
   fi
-  if [[ -z "$(getPercentilePrice)" ]]; then
+  if [[ -z "$(getPercentilePriceToday)" ]]; then
     error "percentile price empty"
     printUsageAndExit
     exit 1
