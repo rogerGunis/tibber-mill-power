@@ -157,20 +157,25 @@ convertData() {
 }
 
 setLines() {
-  local DAY_TITLE=$(jq '.data.viewer.homes[0].currentSubscription.priceInfo.today[] | .startsAt[0:10] ' $(getTmp)/data.json | sort -u | tr -d '"')
+  local DAY_TITLE
+  DAY_TITLE=$(jq '.data.viewer.homes[0].currentSubscription.priceInfo.today[] | .startsAt[0:10] ' "$(getTmp)/data.json" | sort -u | tr -d '"')
   # Prepare vertical line plot of current time
-  local NOW=$(date +%H:%M)
+  local NOW
+  NOW=$(date +%H:%M)
   echo "set arrow from '${NOW}', graph 0 to '${NOW}', graph 1 nohead lt 0" >"$(getTmp)/nowline.gp"
   echo "set title 'Data from: ${DAY_TITLE}'" >> "$(getTmp)/nowline.gp"
-  echo "set arrow from graph 0,first "$(getPercentilePriceToday)" to graph 1, first "$(getPercentilePriceToday)"nohead front lc rgb \"black\" lw 4  dashtype \"-\"" >>"$(getTmp)/nowline.gp"
-  echo "set arrow from graph 0,first "$(getPercentilePriceTomorrow)" to graph 1, first "$(getPercentilePriceTomorrow)"nohead front lc rgb \"black\" lw 4  dashtype \".\"" >>"$(getTmp)/nowline.gp"
+  echo "set arrow from graph 0,first "$(getPercentilePriceToday)" to graph 1, first "$(getPercentilePriceToday)" nohead front lc rgb \"black\" lw 4  dashtype \"-\"" >>"$(getTmp)/nowline.gp"
+
+  if [[ -n "$(getPercentilePriceTomorrow)" ]];then
+      echo "set arrow from graph 0,first "$(getPercentilePriceTomorrow)" to graph 1, first "$(getPercentilePriceTomorrow)" nohead front lc rgb \"black\" lw 4  dashtype \".\"" >>"$(getTmp)/nowline.gp"
+  fi
 
   echo "set label '"$(getPercentile)"%' at 0,"$(getPercentilePriceToday) >>"$(getTmp)/nowline.gp"
 }
 
 makeGraph() {
-  pushd $(getTmp)
-  gnuplot plot && google-chrome $(getTmp)/tibber.png &
+  pushd "$(getTmp)"
+  gnuplot plot && google-chrome "$(getTmp)/tibber.png" &
   popd
 }
 

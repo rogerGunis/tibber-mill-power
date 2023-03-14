@@ -92,7 +92,13 @@ main() {
     source .env
   fi
 
-  TMP_DIR=/tmp/exchange
+  if [[ -z "${TMP_DIR:-}" ]];then
+    echo "tmp dir not set"
+    exit 1;
+  else
+    mkdir -p "${TMP_DIR}"
+  fi
+
   PERCENTILE=70
 
   mkdir -p "${TMP_DIR}"
@@ -106,8 +112,8 @@ main() {
   ./25-*/execute.sh --tmp="${TMP_DIR}" --percentile-price-today="${PERCENTILE_PRICE_TODAY}" --percentile-price-tomorrow="${PERCENTILE_PRICE_TOMORROW}"
 
   info "30"
-  ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power1
-  ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power2
+  ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power1 --token="${MILL_TOKEN:-}"
+  ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power2 --token="${MILL_TOKEN:-}"
 
   info "40"
   ./40-*/execute.sh --tmp="${TMP_DIR}" --percentile-price-today="${PERCENTILE_PRICE_TODAY}" --percentile-price-tomorrow="${PERCENTILE_PRICE_TOMORROW}" --percentile="${PERCENTILE}"

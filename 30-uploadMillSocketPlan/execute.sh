@@ -65,6 +65,10 @@ parseArguments() {
       setHost "${i/*=/}"
       shift
       ;;
+    --token=*)
+      setToken "${i/*=/}"
+      shift
+      ;;
     --help | -h)
       printUsageAndExit
       ;;
@@ -81,6 +85,14 @@ setHost() {
 
 getHost() {
   echo "${HOST:-all}"
+}
+
+setToken() {
+  TOKEN="${1}"
+}
+
+getToken() {
+  echo "${TOKEN:-}"
 }
 
 setTmp() {
@@ -104,6 +116,7 @@ printUsageAndExit() {
     IFS="" read -r -d '' usageText <<EOT
 usage: ${SCRIPT_NAME} --tmp=.... temporary directory saving files
                       --host=<ip>
+                      --token=<token> ... if you have ssl enabled on mill socket
   example:
      ./${SCRIPT_NAME} --tmp=/tmp/exchange --host=fritz.box
 EOT
@@ -112,9 +125,18 @@ EOT
   exit 1
 }
 
-upload(){
-    STATUS=$(ping -q -c1 -w1 $(getHost)  2>&1 >/dev/null && curl -s -X POST -H 'accept: */*' -d@$(getTmp)/plan4mill.json http://$(getHost)/non-repeatable-timers | jq .status || echo "failed")
-    info "$(getHost) upload response: ${STATUS}"
+upload() {
+  local HEADER
+  local SCHEMA=http
+  local CURL_OPT
+  CURL_OPT=("-k")
+  if [[ -n "$(getToken)" ]]; then
+    HEADER=("Authentication: $(getToken)")
+   SCHEMA=https
+  fi
+  STATUS=$(ping -q -c1 -w1 $(getHost) 2>&1 >/dev/null &&
+    curl "${CURL_OPT[@]}" -s -X POST "${HEADER[@]/#/-H}" -H 'accept: */*' -d@"$(getTmp)/plan4mill.json" "${SCHEMA}://$(getHost)/non-repeatable-timers" | jq .status | tr -d '"' || echo "failed")
+  info "$(getHost) upload response: ${STATUS}"
 }
 
 main() {
