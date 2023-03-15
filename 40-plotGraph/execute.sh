@@ -157,13 +157,18 @@ convertData() {
 }
 
 setLines() {
+  local DATA_FROM_LANG
+  DATA_FROM_LANG="Daten von:"
+
   local DAY_TITLE
   DAY_TITLE=$(jq '.data.viewer.homes[0].currentSubscription.priceInfo.today[] | .startsAt[0:10] ' "$(getTmp)/data.json" | sort -u | tr -d '"')
+
   # Prepare vertical line plot of current time
   local NOW
   NOW=$(date +%H:%M)
+
   echo "set arrow from '${NOW}', graph 0 to '${NOW}', graph 1 nohead lt 0" >"$(getTmp)/nowline.gp"
-  echo "set title 'Data from: ${DAY_TITLE}'" >> "$(getTmp)/nowline.gp"
+  echo "set title '${DATA_FROM_LANG}: ${DAY_TITLE}'" >> "$(getTmp)/nowline.gp"
   echo "set arrow from graph 0,first "$(getPercentilePriceToday)" to graph 1, first "$(getPercentilePriceToday)" nohead front lc rgb \"black\" lw 4  dashtype \"-\"" >>"$(getTmp)/nowline.gp"
 
   if [[ -n "$(getPercentilePriceTomorrow)" ]];then
