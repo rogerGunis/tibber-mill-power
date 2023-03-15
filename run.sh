@@ -99,6 +99,10 @@ main() {
     mkdir -p "${TMP_DIR}"
   fi
 
+  if [[ -d ".git" ]];then
+    git pull
+  fi
+
   PERCENTILE=70
 
   mkdir -p "${TMP_DIR}"
