@@ -61,6 +61,10 @@ parseArguments() {
       setTmp "${i/*=/}"
       shift
       ;;
+    --type=*)
+      setType "${i/*=/}"
+      shift
+      ;;
     --username=*|--user=*)
       setUser "${i/*=/}"
       shift
@@ -83,6 +87,15 @@ parseArguments() {
     esac
   done
 }
+
+setType() {
+  TYPE="${1}"
+}
+
+getType() {
+  echo "${TYPE}"
+}
+
 setHost() {
   HOST="${1}"
 }
@@ -130,18 +143,68 @@ usage: ${SCRIPT_NAME} --tmp=.... temporary directory saving files
                       --host=<ip>
                       --user=<user>
                       --password=<password>
+                      --type=<ftp|http>
   example:
-     ./${SCRIPT_NAME} --tmp=/tmp/exchange --host=fritz.box --user=upload --password=noSecret
+     ./${SCRIPT_NAME} --tmp=/tmp/exchange --host=fritz.box --user=upload --password=noSecret --type=ftp
 EOT
   } || true
   info "\n${usageText}"
   exit 1
 }
 
-upload(){
+ftp(){
   STATUS=$(ping -q -c1 -w1 $(getHost)  2>&1 >/dev/null && ncftpput -u "$(getUser)" -p "$(getPassword)" -C "$(getHost)" $(getTmp)/tibber.png tibber.png && echo "ok" || echo "failed")
   echo "host $(getHost) response: ${STATUS}"
 }
+
+http(){
+  # STATUS=$(ping -q -c1 -w1 $(getHost)  2>&1 >/dev/null && ncftpput -u "$(getUser)" -p "$(getPassword)" -C "$(getHost)" $(getTmp)/tibber.png tibber.png && echo "ok" || echo "failed")
+curl -s 'http://'$(getHost)'/app/main.html' \
+  -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' \
+  -H 'Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7' \
+  -H 'Connection: keep-alive' \
+  -H 'Cookie: SESSID=z9riq7ZqHMBGC9tdgU4CrXiHPPLUu6m27ObxLWXtMp2pw; savelge=us; lastaccount='$(getUser)'; hasfirmcheck=1' \
+  -H 'If-Modified-Since: Tue, 05 Jun 2018 08:29:42 GMT' \
+  -H 'If-None-Match: "3889773341"' \
+  -H 'Referer: http://'$(getHost)'/index.html' \
+  -H 'Upgrade-Insecure-Requests: 1' \
+  -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36' \
+  --compressed \
+  --insecure
+
+curl -s 'http://'$(getHost)'/protocol.csp?function=set' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -H 'Cookie: SESSID=z9riq7ZqHMBGC9tdgU4CrXiHPPLUu6m27ObxLWXtMp2pw; savelge=us' \
+  -H 'If-Modified-Since: 0' \
+  -H 'Origin: http://'$(getHost)'' \
+  -H 'Referer: http://'$(getHost)'/index.html' \
+  -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36' \
+  --data-raw 'fname=security&opt=pwdchk&name='$(getUser)'&pwd1='$(getPassword) \
+  --compressed \
+  --insecure
+
+curl -s 'http://'$(getHost)'/upload.csp?uploadpath=/data/UsbDisk1/Volume1/Share/DCIM&file=file1679164276825&session=DE4ri41qPWOPIzWUxXLL8AJRbOA2MzthdoynrADfrrVaQ' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryAFIT8O7FEUGF2liP' \
+  -H 'Cookie: lastaccount='$(getUser)'; SESSID=z9riq7ZqHMBGC9tdgU4CrXiHPPLUu6m27ObxLWXtMp2pw; savelge=us; hasfirmcheck=0; padlistrstop=0px' \
+  -H 'If-Modified-Since: 0' \
+  -H 'Origin: http://'$(getHost)'' \
+  -H 'Referer: http://'$(getHost)'/app/explorer/explorer.html' \
+  -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36' \
+  --data-raw $'------WebKitFormBoundaryAFIT8O7FEUGF2liP\r\nContent-Disposition: form-data; name="@'$(getTmp)/tibber.png'"; filename="tibber.png"\r\nContent-Type: image/png\r\n\r\n\r\n------WebKitFormBoundaryAFIT8O7FEUGF2liP--\r\n' \
+  -d@tibber.png \
+  --compressed \
+  --insecure
+  echo "host $(getHost) response: unknown"
+}
+
 
 main() {
   # info "SCRIPT_DIR is ${SCRIPT_DIR}"
@@ -155,7 +218,7 @@ main() {
     exit 1
   fi
 
-  upload
+  $(getType)
 }
 
 main "$@"

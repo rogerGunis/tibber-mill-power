@@ -124,7 +124,10 @@ main() {
 
   info "50"
   if [[ -n "${FTP_HOST:-}" ]];then
-      ./50-*/execute.sh --tmp="${TMP_DIR}" --username="${FTP_USER}" --password="${FTP_PASS}" --host="${FTP_HOST}"
+      ./50-*/execute.sh --tmp="${TMP_DIR}" --username="${FTP_USER}" --password="${FTP_PASS}" --host="${FTP_HOST}" --type=ftp
+  fi
+  if [[ -n "${HTTP_HOST:-}" ]];then
+      ./50-*/execute.sh --tmp="${TMP_DIR}" --username="${HTTP_USER}" --password="${HTTP_PASS}" --host="${HTTP_HOST}" --type=http
   fi
 }
 
