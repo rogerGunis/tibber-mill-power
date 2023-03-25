@@ -131,9 +131,9 @@ makePlan() {
     info "Percentile-Price ${DAY^}: ${percentilePrice}"
 
     if [[ -n "${percentilePrice}" ]];then
-      jq '.data.viewer.homes[0].currentSubscription.priceInfo.'${DAY}'[] | select((.total <= '"${percentilePrice}"')) | (.startsAt = (.startsAt | strptime("%Y-%m-%dT%H:%M:%S.000+01:00") | mktime)) | (.startsAt = (.startsAt / 60)) | select(.startsAt > '"${NOW}"') | with_entries(if .key == "startsAt" then .key = "timestamp" else . end) | del(.total) | .name = "AlwaysHeating"' "$(getTmp)/data.json"  >>"$(getTmp)/timer.json"
+      jq '.data.viewer.homes[0].currentSubscription.priceInfo.'${DAY}'[] | select((.total <= '"${percentilePrice}"')) | (.startsAt = (.startsAt | strptime("%Y-%m-%dT%H:%M:%S.000%Z") | mktime)) | (.startsAt = (.startsAt / 60)) | select(.startsAt > '"${NOW}"') | with_entries(if .key == "startsAt" then .key = "timestamp" else . end) | del(.total) | .name = "AlwaysHeating"' "$(getTmp)/data.json"  >>"$(getTmp)/timer.json"
 
-      jq '.data.viewer.homes[0].currentSubscription.priceInfo.'${DAY}'[] | select((.total > '"${percentilePrice}"')) | (.startsAt = (.startsAt | strptime("%Y-%m-%dT%H:%M:%S.000+01:00") | mktime)) | (.startsAt = (.startsAt / 60)) | select(.startsAt > '"${NOW}"') | with_entries(if .key == "startsAt" then .key = "timestamp" else . end) | del(.total) | .name = "Off"' "$(getTmp)/data.json"  >>"$(getTmp)/timer.json"
+      jq '.data.viewer.homes[0].currentSubscription.priceInfo.'${DAY}'[] | select((.total > '"${percentilePrice}"')) | (.startsAt = (.startsAt | strptime("%Y-%m-%dT%H:%M:%S.000%Z") | mktime)) | (.startsAt = (.startsAt / 60)) | select(.startsAt > '"${NOW}"') | with_entries(if .key == "startsAt" then .key = "timestamp" else . end) | del(.total) | .name = "Off"' "$(getTmp)/data.json"  >>"$(getTmp)/timer.json"
     fi
   done
 
