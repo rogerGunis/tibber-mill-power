@@ -115,7 +115,9 @@ main() {
   fi
 
   if [[ -d ".git" ]];then
+    git stash
     git pull
+    git stash pop
   fi
 
   PERCENTILE=70
