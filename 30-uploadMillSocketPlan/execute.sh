@@ -125,18 +125,50 @@ EOT
   exit 1
 }
 
-upload() {
-  local HEADER
+getSchema() {
   local SCHEMA=http
-  local CURL_OPT
-  CURL_OPT=("-k")
   if [[ -n "$(getToken)" ]]; then
-    HEADER=("Authentication: $(getToken)")
    SCHEMA=https
   fi
-  STATUS=$(ping -q -c1 -w1 $(getHost) 2>&1 >/dev/null &&
-    curl "${CURL_OPT[@]}" -s -X POST "${HEADER[@]/#/-H}" -H 'accept: */*' -d@"$(getTmp)/plan4mill.json" "${SCHEMA}://$(getHost)/non-repeatable-timers" | jq .status | tr -d '"' || echo "failed")
+  echo "${SCHEMA}"
+}
+
+getHeader() {
+  local HEADER
+  if [[ -n "$(getToken)" ]]; then
+    HEADER=("Authentication: $(getToken)")
+  fi
+  echo "${HEADER[@]/#/-H}"
+}
+
+getCurlOpts() {
+  local CURL_OPT
+  CURL_OPT=("-k")
+  echo ${CURL_OPT[@]}
+}
+
+upload() {
+  ping -q -c1 -w1 $(getHost) 1>/dev/null 2>&1 && ret=$? || ret=$?
+
+  STATUS="failed"
+  if [[ "${ret}" == "0" ]];then
+    STATUS=$(curl $(getCurlOpts) -s -X POST "$(getHeader)" -H 'accept: */*' -d@"$(getTmp)/plan4mill.json" "$(getSchema)://$(getHost)/non-repeatable-timers" | jq .status | tr -d '"' || echo "failed")
+  fi
   info "$(getHost) upload response: ${STATUS}"
+}
+
+validate() {
+  > "$(getTmp)/plan4mill.validate.json"
+  # curl -k -X GET  -H "Authentication: 1u1UvoVSG_yrU1gE"   -H 'accept: */*' https://192.168.116.138:443/non-repeatable-timers
+
+  ping -q -c1 -w1 $(getHost) 1>/dev/null 2>&1 && ret=$? || ret=$?
+
+  if [[ "${ret}" == "0" ]];then
+    curl $(getCurlOpts) -o "$(getTmp)/plan4mill.validate.json" -s -X GET "$(getHeader)" -H 'accept: */*' "$(getSchema)://$(getHost)/non-repeatable-timers"
+    echo "===================================="
+    jq -r '[ .non_repeatable_timers[] | .time = (.time*60) | .time = (.time | todate) | .type_value = (.type_value | tostring | (length | if . <= 3 then " " * (13 - .) else "" end) as $padding | "\($padding)\(.)") ] | (map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @tsv' "$(getTmp)/plan4mill.validate.json"
+    echo "===================================="
+  fi
 }
 
 main() {
@@ -152,6 +184,7 @@ main() {
   fi
 
   upload
+  validate
 }
 
 main "$@"
