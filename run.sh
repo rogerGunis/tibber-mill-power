@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+LOG_FILE=$(pwd)/tibber.log
+exec > >(tee ${LOG_FILE}) 2>&1
+
 # Exit on error. Append "|| true" if you expect an error.
 set -o errexit
 # Exit on error inside any functions or subshells.
