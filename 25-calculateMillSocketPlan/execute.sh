@@ -131,9 +131,9 @@ makePlan() {
     info "Percentile-Price ${DAY^}: ${percentilePrice}"
 
     if [[ -n "${percentilePrice}" ]];then
-      jq '.data.viewer.homes[0].currentSubscription.priceInfo.'${DAY}'[] | select((.total <= '"${percentilePrice}"')) | (.startsAt = (.startsAt | strptime("%Y-%m-%dT%H:%M:%S.000%Z") | mktime)) | (.startsAt = (.startsAt / 60)) | select(.startsAt > '"${NOW}"') | with_entries(if .key == "startsAt" then .key = "timestamp" else . end) | del(.total) | .name = "AlwaysHeating"' "$(getTmp)/data.json"  >>"$(getTmp)/timer.json"
+      jq '.data.viewer.homes[0].currentSubscription.priceInfo.'${DAY}'[] | select((.total <= '"${percentilePrice}"')) | (.startsAt = (.startsAt[0:19] + "Z"|fromdateiso8601) + (.startsAt[20:23]|tonumber)) | (.startsAt = (.startsAt / 60)) | select(.startsAt > '"${NOW}"') | with_entries(if .key == "startsAt" then .key = "timestamp" else . end) | del(.total) | .name = "AlwaysHeating"' "$(getTmp)/data.json"  >>"$(getTmp)/timer.json"
 
-      jq '.data.viewer.homes[0].currentSubscription.priceInfo.'${DAY}'[] | select((.total > '"${percentilePrice}"')) | (.startsAt = (.startsAt | strptime("%Y-%m-%dT%H:%M:%S.000%Z") | mktime)) | (.startsAt = (.startsAt / 60)) | select(.startsAt > '"${NOW}"') | with_entries(if .key == "startsAt" then .key = "timestamp" else . end) | del(.total) | .name = "Off"' "$(getTmp)/data.json"  >>"$(getTmp)/timer.json"
+      jq '.data.viewer.homes[0].currentSubscription.priceInfo.'${DAY}'[] | select((.total > '"${percentilePrice}"')) | (.startsAt = (.startsAt[0:19] + "Z"|fromdateiso8601) + (.startsAt[20:23]|tonumber)) | (.startsAt = (.startsAt / 60)) | select(.startsAt > '"${NOW}"') | with_entries(if .key == "startsAt" then .key = "timestamp" else . end) | del(.total) | .name = "Off"' "$(getTmp)/data.json"  >>"$(getTmp)/timer.json"
     fi
   done
 
@@ -151,6 +151,12 @@ makePlan() {
   } | jq >>"$(getTmp)/plan4mill.json"
 
 
+}
+
+showPlan() {
+  echo "===================================="
+  cat "$(getTmp)/plan4mill.json" | jq -r '[ .non_repeatable_timers[] | .timestamp = (.timestamp*60) | .timestamp = (.timestamp | todate) | .name = (.name | tostring | (length | if . <= 3 then " " * (13 - .) else "" end) as $padding | "\($padding)\(.)") ] | (map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @tsv'
+  echo "===================================="
 }
 
 main() {
@@ -171,6 +177,9 @@ main() {
   fi
 
   makePlan
+
+  showPlan
+
 }
 
 main "$@"

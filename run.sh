@@ -63,6 +63,9 @@ parseArguments() {
     --help | -h)
       printUsageAndExit
       ;;
+    --dry | -d)
+      setDryRun
+      ;;
     *)
       error "Unknown option: ${i}"
       printUsageAndExit
@@ -82,6 +85,15 @@ EOT
   } || true
   info "\n${usageText}"
   exit 1
+}
+
+setDryRun() {
+  local TRUE=0
+  DRY=$TRUE
+}
+
+isDryRun(){
+  return ${DRY:-1}
 }
 
 main() {
@@ -119,8 +131,8 @@ main() {
   ./25-*/execute.sh --tmp="${TMP_DIR}" --percentile-price-today="${PERCENTILE_PRICE_TODAY}" --percentile-price-tomorrow="${PERCENTILE_PRICE_TOMORROW}"
 
   info "30"
-  ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power1 --token="${MILL_TOKEN:-}"
-  ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power2 --token="${MILL_TOKEN:-}"
+  isDryRun || ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power1 --token="${MILL_TOKEN:-}"
+  isDryRun || ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power2 --token="${MILL_TOKEN:-}"
 
   info "40"
   ./40-*/execute.sh --tmp="${TMP_DIR}" --percentile-price-today="${PERCENTILE_PRICE_TODAY}" --percentile-price-tomorrow="${PERCENTILE_PRICE_TOMORROW}" --percentile="${PERCENTILE}"
