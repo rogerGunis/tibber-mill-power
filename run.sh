@@ -49,6 +49,7 @@ onExit() {
   local errorCode=$1
   local lineno=$2
   # your cleanup code here ...
+  test -n "${LOG_DEST}" && cp "${LOG_FILE}" "${LOG_DEST}"
   if [[ $errorCode -gt 0 ]]; then
     info "Exiting with errors <$errorCode>, lineNumber <$lineno>"
   fi
