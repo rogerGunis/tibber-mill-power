@@ -135,8 +135,8 @@ main() {
   ./25-*/execute.sh --tmp="${TMP_DIR}" --percentile-price-today="${PERCENTILE_PRICE_TODAY}" --percentile-price-tomorrow="${PERCENTILE_PRICE_TOMORROW}"
 
   info "30"
-  isDryRun || ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power1 --token="${MILL_TOKEN:-}"
-  isDryRun || ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power2 --token="${MILL_TOKEN:-}"
+  isDryRun || ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power1 # --token="${MILL_TOKEN:-}"
+  isDryRun || ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power2 # --token="${MILL_TOKEN:-}"
 
   info "40"
   ./40-*/execute.sh --tmp="${TMP_DIR}" --percentile-price-today="${PERCENTILE_PRICE_TODAY}" --percentile-price-tomorrow="${PERCENTILE_PRICE_TOMORROW}" --percentile="${PERCENTILE}"
