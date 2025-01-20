@@ -27,6 +27,7 @@ readonly LOG_LEVEL_INFO=2
 readonly LOG_LEVEL_DEBUG=3
 
 LOG_LEVEL=LOG_LEVEL_INFO
+MILL=()
 TMP=""
 
 debug() {
@@ -64,12 +65,23 @@ parseArguments() {
     case $i in
     --help | -h)
       printUsageAndExit
+      shift
       ;;
     --dry | -d)
       setDryRun
+      shift
+      ;;
+    --percentile=*| -p=*)
+      setPercentile "${i#*=}"
+      shift
+      ;;
+    --mill=*| -m=*)
+      setMill "${i#*=}"
+      shift
       ;;
     *)
       error "Unknown option: ${i}"
+      shift
       printUsageAndExit
       ;;
     esac
@@ -98,16 +110,32 @@ isDryRun(){
   return ${DRY:-1}
 }
 
+setPercentile() {
+   PERCENTILE=$1
+}
+
+getPercentile() {
+   echo "${PERCENTILE:-70}"
+}
+
+setMill() {
+   MILL+=(${1//,/ })
+}
+
+getMill() {
+   echo "${MILL[*]}"
+}
+
 main() {
   # info "SCRIPT_DIR is ${SCRIPT_DIR}"
   # info "SCRIPT_PATH is ${SCRIPT_PATH}"
   # info "SCRIPT_NAME is ${SCRIPT_NAME}"
   # info "BASH_SOURCE is ${BASH_SOURCE[@]}"
-  parseArguments "$@"
-
   if [[ -f .env ]]; then
     source .env
   fi
+
+  parseArguments "$@"
 
   if [[ -z "${TMP_DIR:-}" ]];then
     echo "tmp dir not set"
@@ -122,29 +150,31 @@ main() {
     git stash pop
   fi
 
-  PERCENTILE=70
-
   mkdir -p "${TMP_DIR}"
-  info "10"
+  info "step 10"
   ./10-*/execute.sh --tmp="${TMP_DIR}" --token="${TIBBER_TOKEN:-5K4MVS-OjfWhK_4yrjOlFe1F6kJXPVf7eQYggo8ebAE}"
 
-  PERCENTILE_PRICE_TODAY=$(./20-*/execute.sh --tmp="${TMP_DIR}" --day=today --percentile="${PERCENTILE}")
-  PERCENTILE_PRICE_TOMORROW=$(./20-*/execute.sh --tmp="${TMP_DIR}" --day=tomorrow --percentile="${PERCENTILE}")
+  info "step 20"
+  PERCENTILE_PRICE_TODAY=$(./20-*/execute.sh --tmp="${TMP_DIR}" --day=today --percentile="$(getPercentile)")
+  PERCENTILE_PRICE_TOMORROW=$(./20-*/execute.sh --tmp="${TMP_DIR}" --day=tomorrow --percentile="$(getPercentile)")
 
-  info "25"
+  info "step 25"
   ./25-*/execute.sh --tmp="${TMP_DIR}" --percentile-price-today="${PERCENTILE_PRICE_TODAY}" --percentile-price-tomorrow="${PERCENTILE_PRICE_TOMORROW}"
 
-  info "30"
-  isDryRun || ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power1 # --token="${MILL_TOKEN:-}"
-  isDryRun || ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power2 # --token="${MILL_TOKEN:-}"
+  info "step 30"
+  for millId in $(getMill);do
+    info "starting mill $millId"
+    isDryRun || ./30-*/execute.sh --tmp="${TMP_DIR}" --host=power${millId} # --token="${MILL_TOKEN:-}"
+  done
 
-  info "40"
-  ./40-*/execute.sh --tmp="${TMP_DIR}" --percentile-price-today="${PERCENTILE_PRICE_TODAY}" --percentile-price-tomorrow="${PERCENTILE_PRICE_TOMORROW}" --percentile="${PERCENTILE}"
+  info "step 40"
+  ./40-*/execute.sh --tmp="${TMP_DIR}" --percentile-price-today="${PERCENTILE_PRICE_TODAY}" --percentile-price-tomorrow="${PERCENTILE_PRICE_TOMORROW}" --percentile="$(getPercentile)"
 
-  info "50"
+  info "step 50"
   if [[ -n "${FTP_HOST:-}" ]];then
       ./50-*/execute.sh --tmp="${TMP_DIR}" --username="${FTP_USER}" --password="${FTP_PASS}" --host="${FTP_HOST}" --type=ftp
   fi
+  info "step 60"
   if [[ -n "${HTTP_HOST:-}" ]];then
       ./50-*/execute.sh --tmp="${TMP_DIR}" --username="${HTTP_USER}" --password="${HTTP_PASS}" --host="${HTTP_HOST}" --type=http
   fi

@@ -125,7 +125,8 @@ calculatePercentile() {
   num="$(wc -l "${input}" | cut -f1 -d' ')"
   # sort values
   # print the desired percentiles
-  for p in 50 60 70 80 90 95 100; do
+  for p in $(seq 0 5 100); do
+    if [[ $p == 0 ]]; then continue; fi
     calcN=$(echo "$num / 100 * $p" | bc -l | awk -F\. '{print $1}')
     if [[ "$(getPercentile)" == "all" ]]; then
       printf "%3s%%: %-5.5s ct\n" "$p" "$(head "${input}" -n "${calcN}" | tail -n1)"
