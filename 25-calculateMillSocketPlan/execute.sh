@@ -154,9 +154,9 @@ makePlan() {
 }
 
 showPlan() {
-  echo "===================================="
-  cat "$(getTmp)/plan4mill.json" | jq -r '[ .non_repeatable_timers[] | .timestamp = (.timestamp*60) | .timestamp = (.timestamp | todate) | .name = (.name | tostring | (length | if . <= 3 then " " * (13 - .) else "" end) as $padding | "\($padding)\(.)") ] | (map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @tsv'
-  echo "===================================="
+  echo "===================================="  | tee > $(getTmp)/plan4mill.txt
+  cat "$(getTmp)/plan4mill.json" | jq -r '[ .non_repeatable_timers[] | .timestamp = (.timestamp*60) | .timestamp = (.timestamp | todate) | .name = (.name | tostring | (length | if . <= 3 then " " * (13 - .) else "" end) as $padding | "\($padding)\(.)") ] | (map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @tsv' | tee >> $(getTmp)/plan4mill.txt
+  echo "====================================" | tee >> $(getTmp)/plan4mill.txt
 }
 
 main() {

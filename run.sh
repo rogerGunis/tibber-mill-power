@@ -147,7 +147,7 @@ main() {
   if [[ -d ".git" ]];then
     git stash
     git pull
-    git stash pop
+    git stash pop || true
   fi
 
   mkdir -p "${TMP_DIR}"
